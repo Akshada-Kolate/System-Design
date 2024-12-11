@@ -1,0 +1,484 @@
+SOLID principles are a set of five design principles used in object-oriented programming. 
+Adhering to these principles will help you develop robust software. 
+They will make your code more efficient, readable, and maintainable.
+
+SOLID is an acronym that stands for:
+
+Single Responsibility Principle
+Open/Closed Principle
+Liskov Substitution Principle
+Interface Segregation Principle
+Dependency Inversion Principle
+
+1. Single Responsibility Principle (SRP)
+Definition: A class should have only one reason to change, meaning it should have only one job or responsibility.
+
+Before SRP:
+Consider a User class that handles user data and also manages file storage.
+
+public class User {
+    private String name;
+    private String email;
+
+    public User(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    // Bad practice: Handling file storage within the User class
+    public void saveToFile() {
+        try (FileWriter fileWriter = new FileWriter(name + ".txt")) {
+            fileWriter.write("Name: " + name + "\n");
+            fileWriter.write("Email: " + email + "\n");
+            System.out.println("User data saved to file successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        User user = new User("John Doe", "john.doe@example.com");
+        user.saveToFile();
+    }
+}
+Output:
+
+User data saved to file successfully.
+Explanation: The User class has two responsibilities: managing user data and handling file storage. This violates the Single Responsibility Principle because a change in the file storage mechanism would require modifications to the User class.
+
+After SRP:
+To adhere to SRP, we should separate these responsibilities into different classes.
+
+// User.java
+public class User {
+    private String name;
+    private String email;
+
+    public User(String name, String email) {
+        this.name = name;
+        this.email = email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+}
+
+// UserFileManager.java
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class UserFileManager {
+    public void saveToFile(User user) {
+        try (FileWriter fileWriter = new FileWriter(user.getName() + ".txt")) {
+            fileWriter.write("Name: " + user.getName() + "\n");
+            fileWriter.write("Email: " + user.getEmail() + "\n");
+            System.out.println("User data saved to file successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+// Main.java
+public class Main {
+    public static void main(String[] args) {
+        User user = new User("John Doe", "john.doe@example.com");
+        UserFileManager fileManager = new UserFileManager();
+        fileManager.saveToFile(user);
+    }
+}
+Output:
+
+User data saved to file successfully.
+Explanation: The User class now only manages user data, while the UserFileManager class handles file storage. This adheres to the Single Responsibility Principle, as each class now has only one reason to change.
+
+2. Open/Closed Principle (OCP)
+Definition: Software entities should be open for extension but closed for modification.
+
+Before OCP:
+Suppose we have a class that calculates discounts for different types of customers.
+
+public class DiscountCalculator {
+    public double calculateDiscount(String customerType, double amount) {
+        if (customerType.equals("Regular")) {
+            return amount * 0.1;
+        } else if (customerType.equals("Premium")) {
+            return amount * 0.2;
+        }
+        return 0;
+    }
+
+    public static void main(String[] args) {
+        DiscountCalculator calculator = new DiscountCalculator();
+        double regularDiscount = calculator.calculateDiscount("Regular", 100);
+        double premiumDiscount = calculator.calculateDiscount("Premium", 100);
+
+        System.out.println("Regular Discount: " + regularDiscount);
+        System.out.println("Premium Discount: " + premiumDiscount);
+    }
+}
+Output:
+
+Regular Discount: 10.0
+Premium Discount: 20.0
+Explanation: The DiscountCalculator class violates the Open/Closed Principle because it needs to be modified whenever a new type of discount is added.
+
+After OCP:
+To adhere to OCP, we can use polymorphism to extend the behavior without modifying the existing code.
+
+// Discount.java
+public abstract class Discount {
+    public abstract double calculate(double amount);
+}
+
+// RegularDiscount.java
+public class RegularDiscount extends Discount {
+    public double calculate(double amount) {
+        return amount * 0.1;
+    }
+}
+
+// PremiumDiscount.java
+public class PremiumDiscount extends Discount {
+    public double calculate(double amount) {
+        return amount * 0.2;
+    }
+}
+
+// DiscountCalculator.java
+public class DiscountCalculator {
+    public double calculateDiscount(Discount discount, double amount) {
+        return discount.calculate(amount);
+    }
+}
+
+// Main.java
+public class Main {
+    public static void main(String[] args) {
+        Discount regularDiscount = new RegularDiscount();
+        Discount premiumDiscount = new PremiumDiscount();
+
+        DiscountCalculator calculator = new DiscountCalculator();
+
+        double regularDiscountAmount = calculator.calculateDiscount(regularDiscount, 100);
+        double premiumDiscountAmount = calculator.calculateDiscount(premiumDiscount, 100);
+
+        System.out.println("Regular Discount: " + regularDiscountAmount);
+        System.out.println("Premium Discount: " + premiumDiscountAmount);
+    }
+}
+Output:
+
+Regular Discount: 10.0
+Premium Discount: 20.0
+Explanation: The DiscountCalculator class now depends on the Discount interface, allowing new discount types to be added without modifying the existing code. This adheres to the Open/Closed Principle.
+
+3. Liskov Substitution Principle (LSP)
+Definition: Subtypes must be substitutable for their base types without altering the correctness of the program.
+
+Before LSP:
+Consider a class hierarchy for rectangles and squares.
+
+public class Rectangle {
+    protected int width;
+    protected int height;
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public int getArea() {
+        return width * height;
+    }
+}
+
+public class Square extends Rectangle {
+    public void setWidth(int width) {
+        this.width = width;
+        this.height = width;
+    }
+
+    public void setHeight(int height) {
+        this.width = height;
+        this.height = height;
+    }
+
+    public static void main(String[] args) {
+        Rectangle rectangle = new Rectangle();
+        rectangle.setWidth(5);
+        rectangle.setHeight(10);
+        System.out.println("Rectangle Area: " + rectangle.getArea());
+
+        Square square = new Square();
+        square.setWidth(5);
+        System.out.println("Square Area: " + square.getArea());
+    }
+}
+Output:
+
+Rectangle Area: 50
+Square Area: 25
+Explanation: The Square class does not behave like a Rectangle when setting the width and height, which violates the Liskov Substitution Principle.
+
+After LSP:
+To adhere to LSP, we should use composition instead of inheritance.
+
+// Shape.java
+public interface Shape {
+    int getArea();
+}
+
+// Rectangle.java
+public class Rectangle implements Shape {
+    private int width;
+    private int height;
+
+    public Rectangle(int width, int height) {
+        this.width = width;
+        this.height = height;
+    }
+
+    public int getArea() {
+        return width * height;
+    }
+}
+
+// Square.java
+public class Square implements Shape {
+    private int side;
+
+    public Square(int side) {
+        this.side = side;
+    }
+
+    public int getArea() {
+        return side * side;
+    }
+}
+
+// Main.java
+public class Main {
+    public static void main(String[] args) {
+        Shape rectangle = new Rectangle(5, 10);
+        Shape square = new Square(5);
+
+        System.out.println("Rectangle Area: " + rectangle.getArea());
+        System.out.println("Square Area: " + square.getArea());
+    }
+}
+Output:
+
+Rectangle Area: 50
+Square Area: 25
+Explanation: The Rectangle and Square classes now implement the Shape interface, making them interchangeable without altering the correctness of the program. This adheres to the Liskov Substitution Principle.
+
+4. Interface Segregation Principle (ISP)
+Definition: Clients should not be forced to depend on interfaces they do not use.
+
+Before ISP:
+Consider an interface for different types of printers.
+
+public interface Printer {
+    void printDocument();
+    void scanDocument();
+    void faxDocument();
+}
+
+public class SimplePrinter implements Printer {
+    public void printDocument() {
+        System.out.println("Printing document...");
+    }
+
+    public void scanDocument() {
+        // Not implemented
+    }
+
+    public void faxDocument() {
+        // Not implemented
+    }
+
+    public static void main(String[] args) {
+        SimplePrinter printer = new SimplePrinter();
+        printer.printDocument();
+    }
+}
+Output:
+
+Printing document...
+Explanation: The SimplePrinter class implements methods that it does not use, violating the Interface Segregation Principle.
+
+After ISP:
+This interface should be split into smaller interfaces.
+
+// Printer.java
+public interface Printer {
+    void printDocument();
+}
+
+// Scanner.java
+public interface Scanner {
+    void scanDocument();
+}
+
+// Fax.java
+public interface Fax {
+    void faxDocument();
+}
+
+// SimplePrinter.java
+public class SimplePrinter implements Printer {
+    public void printDocument() {
+        System.out.println("Printing document...");
+    }
+}
+
+// MultiFunctionPrinter.java
+public class MultiFunctionPrinter implements Printer, Scanner, Fax {
+    public void printDocument() {
+        System.out.println("Printing document...");
+    }
+
+    public void scanDocument() {
+        System.out.println("Scanning document...");
+    }
+
+    public void faxDocument() {
+        System.out.println("Faxing document...");
+    }
+}
+
+// Main.java
+public class Main {
+    public static void main(String[] args) {
+        Printer simplePrinter = new SimplePrinter();
+        simplePrinter.printDocument();
+
+        MultiFunctionPrinter mfp = new MultiFunctionPrinter();
+        mfp.printDocument();
+        mfp.scanDocument();
+        mfp.faxDocument();
+    }
+}
+Output:
+
+Printing document...
+Printing document...
+Scanning document...
+Faxing document...
+Explanation: The Printer, Scanner, and Fax interfaces are now segregated, ensuring that classes only implement the interfaces they use. This adheres to the Interface Segregation Principle.
+
+5. Dependency Inversion Principle (DIP)
+Definition: High-level modules should not depend on low-level modules. Both should depend on abstractions. Abstractions should not depend on details. Details should depend on abstractions.
+
+Before DIP:
+Consider a LightBulb class and a Switch class.
+
+public class LightBulb {
+    public void turnOn() {
+        System.out.println("LightBulb on");
+    }
+
+    public void turnOff() {
+        System.out.println("LightBulb off");
+    }
+}
+
+public class Switch {
+    private LightBulb lightBulb;
+
+    public Switch(LightBulb lightBulb) {
+        this.lightBulb = lightBulb;
+    }
+
+    public void operate() {
+        lightBulb.turnOn();
+    }
+
+    public static void main(String[] args) {
+        LightBulb lightBulb = new LightBulb();
+        Switch lightSwitch = new Switch(lightBulb);
+        lightSwitch.operate();
+    }
+}
+Output:
+
+LightBulb on
+Explanation: The Switch class directly depends on the LightBulb class, violating the Dependency Inversion Principle.
+
+After DIP:
+To adhere to DIP, we should depend on abstractions.
+
+// Switchable.java
+public interface Switchable {
+    void turnOn();
+    void turnOff();
+}
+
+// LightBulb.java
+public class LightBulb implements Switchable {
+    public void turnOn() {
+        System.out.println("LightBulb on");
+    }
+
+    public void turnOff() {
+        System.out.println("LightBulb off");
+    }
+}
+
+// Switch.java
+public class Switch {
+    private Switchable device;
+
+    public Switch(Switchable device) {
+        this.device = device;
+    }
+
+    public void operate() {
+        device.turnOn();
+    }
+}
+
+// Main.java
+public class Main {
+    public static void main(String[] args) {
+        Switchable lightBulb = new LightBulb();
+        Switch lightSwitch = new Switch(lightBulb);
+        lightSwitch.operate();
+    }
+}
+Output:
+
+LightBulb on
+Explanation: The Switch class now depends on the Switchable interface rather than the LightBulb class. This adheres to the Dependency Inversion Principle, as high-level modules and low-level modules both depend on abstractions.
+
+Conclusion
+In software development, adhering to the SOLID principles — Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion — provides a structured approach to creating maintainable and flexible code. Each principle addresses specific aspects of software design, aiming to reduce complexity, increase reusability, and facilitate easier maintenance.
+
+Single Responsibility Principle (SRP) ensures that each class has only one reason to change, promoting clarity and maintainability by separating responsibilities.
+
+Open/Closed Principle (OCP) encourages software entities to be open for extension but closed for modification, allowing new features to be added without altering existing code.
+
+Liskov Substitution Principle (LSP) emphasizes the use of inheritance and polymorphism in a way that does not break the functionality of the program, fostering robust and interchangeable components.
+
+Interface Segregation Principle (ISP) advocates for the creation of fine-grained interfaces that are client-specific, preventing unnecessary dependencies and promoting code clarity.
+
+Dependency Inversion Principle (DIP) promotes loose coupling by ensuring that high-level modules depend on abstractions rather than concrete implementations, enabling easier testing, maintenance, and scalability.
+
+By applying these principles in Java, developers can create software that is easier to understand, extend, and modify.

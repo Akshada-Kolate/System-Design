@@ -1,0 +1,123 @@
+ An observable is an object which notifies oberver about changes in its state.
+Observer Dessign pattern is a behavioral design pattern where an object, known as the subject, maintains a lsit of its dependents, called observers, that are notified of any change in subject's state.
+This pattern is often used to implement distributed event handling system.
+
+Example:
+Let's consider a simple weather monitoring system where we have a 'WeatherStation' as the subject and various display devices(observers) like 'CurrentConditionDisplay' and 'StatisticsDisplay' that want to be notified whenever the weather changes.
+
+Explanation of Problem : 
+'WeatherStation' is the subject that maintains a list of observers and notifies them when the temperature changes.
+'CurrentConditionsDisplay' and 'StatisticsDisplay' are concrete observers that implement the Observer interface. They register themselves with the 'WeatherStation' and are notified whenever the temperature changes.
+The 'ObserverPatternExample' class demonstrates how to use the Observer Pattern by creating a 'WeatherStation' and two display devices, registering the devices as observers, and simulating changes in temperature.
+
+Imf plementation :
+import java.util.ArrayList;
+import java.util.List;
+
+// Subject (Observable)
+class WeatherStation {
+    private List<Observer> observers = new ArrayList<>();
+    private float temperature;
+
+    public void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    public void removeObserver(Observer observer) {
+        observers.remove(observer);
+    }
+
+    public void setTemperature(float temperature) {
+        this.temperature = temperature;
+        notifyObservers();
+    }
+
+    private void notifyObservers() {
+        for (Observer observer : observers) {
+            observer.update(temperature);
+        }
+    }
+}
+
+// Observer
+interface Observer {
+    void update(float temperature);
+}
+
+// Concrete Observer
+class CurrentConditionsDisplay implements Observer {
+    private float temperature;
+
+    @Override
+    public void update(float temperature) {
+        this.temperature = temperature;
+        display();
+    }
+
+    private void display() {
+        System.out.println("Current Conditions Display: Temperature = " + temperature);
+    }
+}
+
+// Concrete Observer
+class StatisticsDisplay implements Observer {
+    private float temperature;
+
+    @Override
+    public void update(float temperature) {
+        this.temperature = temperature;
+        display();
+    }
+
+    private void display() {
+        System.out.println("Statistics Display: Temperature = " + temperature);
+    }
+}
+
+// Main class
+public class ObserverPatternExample {
+    public static void main(String[] args) {
+        WeatherStation weatherStation = new WeatherStation();
+
+        CurrentConditionsDisplay currentConditionsDisplay = new CurrentConditionsDisplay();
+        StatisticsDisplay statisticsDisplay = new StatisticsDisplay();
+
+        weatherStation.addObserver(currentConditionsDisplay);
+        weatherStation.addObserver(statisticsDisplay);
+
+        // Simulate a change in temperature
+        weatherStation.setTemperature(25.5f);
+        // Output:
+        // Current Conditions Display: Temperature = 25.5
+        // Statistics Display: Temperature = 25.5
+
+        // Simulate another change in temperature
+        weatherStation.setTemperature(30.0f);
+        // Output:
+        // Current Conditions Display: Temperature = 30.0
+        // Statistics Display: Temperature = 30.0
+
+        // Remove an observer
+        weatherStation.removeObserver(currentConditionsDisplay);
+
+        // Simulate another change in temperature
+        weatherStation.setTemperature(28.0f);
+        // Output:
+        // Statistics Display: Temperature = 28.0
+    }
+}
+
+Output
+Current Conditions Display: Temperature = 25.5
+Statistics Display: Temperature = 25.5
+Current Conditions Display: Temperature = 30.0
+Statistics Display: Temperature = 30.0
+Statistics Display: Temperat...
+
+
+There are four main components of the observer method pattern are:
+
+Subject (Observable)
+Observer
+Concrete Observer
+Main Program
